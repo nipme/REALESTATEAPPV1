@@ -1,0 +1,6 @@
+{
+  "name": "عقاراتي",
+  "description": "تطبيق عقارات متكامل للبحث عن العقارات المعروضة للبيع والإيجار وحفظ المفضلة وحاسبة التمويل العقاري والتواصل مع الوسطاء",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

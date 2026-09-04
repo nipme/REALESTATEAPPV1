@@ -2,6 +2,7 @@ package com.example.ui.components
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,17 +22,25 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Bathtub
 import androidx.compose.material.icons.filled.Bed
+import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Elevator
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Landscape
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Pool
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SquareFoot
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,7 +57,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -58,11 +66,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.BorderStroke
 import com.example.data.local.PropertyEntity
-import com.example.ui.theme.AccentTagGreen
-import com.example.ui.theme.AccentTagGreenBg
 import com.example.ui.theme.FavoriteRed
+import com.example.ui.theme.TagBrokerBg
+import com.example.ui.theme.TagBrokerCyan
+import com.example.ui.theme.TagGreen
+import com.example.ui.theme.TagGreenBg
+import com.example.ui.theme.TagOfficeBg
+import com.example.ui.theme.TagOfficeIndigo
+import com.example.ui.theme.TagOwnerBg
+import com.example.ui.theme.TagOwnerBlue
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -113,7 +126,7 @@ fun PropertyDetailSheet(
                                 colors = listOf(
                                     Color.Black.copy(alpha = 0.5f),
                                     Color.Transparent,
-                                    Color.Black.copy(alpha = 0.7f)
+                                    Color.Black.copy(alpha = 0.75f)
                                 )
                             )
                         )
@@ -140,7 +153,8 @@ fun PropertyDetailSheet(
                             Icon(
                                 imageVector = Icons.Filled.Close,
                                 contentDescription = "إغلاق",
-                                tint = MaterialTheme.colorScheme.onSurface
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
@@ -154,22 +168,23 @@ fun PropertyDetailSheet(
                         ) {
                             IconButton(
                                 onClick = {
-                                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                        type = "text/plain"
-                                        putExtra(Intent.EXTRA_SUBJECT, property.title)
+                                    val sendIntent = Intent().apply {
+                                        action = Intent.ACTION_SEND
                                         putExtra(
                                             Intent.EXTRA_TEXT,
-                                            "عقار مميز على تطبيق عقاراتي: ${property.title} بـ ${formattedPrice} ${property.currency} في ${property.city}"
+                                            "شاهد هذا العقار على تطبيق عقاراتي:\n${property.title}\nالسعر: ${property.price} ${property.currency}\nالموقع: ${property.neighborhood}، ${property.city}"
                                         )
+                                        type = "text/plain"
                                     }
-                                    context.startActivity(Intent.createChooser(shareIntent, "مشاركة العقار"))
+                                    context.startActivity(Intent.createChooser(sendIntent, "مشاركة العقار"))
                                 },
                                 modifier = Modifier.testTag("share_property_button")
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Share,
                                     contentDescription = "مشاركة",
-                                    tint = MaterialTheme.colorScheme.onSurface
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
@@ -182,19 +197,20 @@ fun PropertyDetailSheet(
                         ) {
                             IconButton(
                                 onClick = onToggleFavorite,
-                                modifier = Modifier.testTag("detail_favorite_button")
+                                modifier = Modifier.testTag("favorite_detail_button")
                             ) {
                                 Icon(
                                     imageVector = if (property.isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                                    contentDescription = "تفضيل",
-                                    tint = if (property.isFavorite) FavoriteRed else MaterialTheme.colorScheme.primary
+                                    contentDescription = "المفضلة",
+                                    tint = if (property.isFavorite) FavoriteRed else MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(22.dp)
                                 )
                             }
                         }
                     }
                 }
 
-                // Bottom Badges on Image
+                // Badges overlay at bottom of image
                 Row(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
@@ -204,11 +220,11 @@ fun PropertyDetailSheet(
                     val isRent = property.purpose == "للإيجار"
                     Surface(
                         shape = RoundedCornerShape(8.dp),
-                        color = if (isRent) AccentTagGreenBg else MaterialTheme.colorScheme.primary.copy(alpha = 0.92f)
+                        color = if (isRent) TagGreenBg else MaterialTheme.colorScheme.primary.copy(alpha = 0.92f)
                     ) {
                         Text(
                             text = property.purpose,
-                            color = if (isRent) AccentTagGreen else MaterialTheme.colorScheme.onPrimary,
+                            color = if (isRent) TagGreen else MaterialTheme.colorScheme.onPrimary,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -226,6 +242,37 @@ fun PropertyDetailSheet(
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                         )
+                    }
+
+                    // Publisher Badge
+                    val (badgeBg, badgeColor) = when (property.publisherType) {
+                        "owner" -> Pair(TagOwnerBg, TagOwnerBlue)
+                        "agency" -> Pair(TagOfficeBg, TagOfficeIndigo)
+                        else -> Pair(TagBrokerBg, TagBrokerCyan)
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = badgeBg,
+                        border = BorderStroke(1.dp, badgeColor.copy(alpha = 0.7f))
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Verified,
+                                contentDescription = null,
+                                tint = badgeColor,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = property.publisherBadge,
+                                color = badgeColor,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -303,13 +350,43 @@ fun PropertyDetailSheet(
                     )
                 }
 
+                // Property Type-Specific Highlights Banner (ينسجم مع نوع العقار)
+                if (property.typeSpecificDetails.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = property.typeSpecificDetails,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(20.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Specifications Grid
+                // Specifications Grid tailored to Property Type
                 Text(
-                    text = "مواصفات العقار",
+                    text = "مواصفات العقار الرئيسية",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -317,34 +394,159 @@ fun PropertyDetailSheet(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    SpecBox(
-                        title = "المساحة",
-                        value = "${property.area} م²",
-                        icon = Icons.Filled.SquareFoot,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SpecBox(
-                        title = "غرف النوم",
-                        value = "${property.bedrooms}",
-                        icon = Icons.Filled.Bed,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SpecBox(
-                        title = "دورات المياه",
-                        value = "${property.bathrooms}",
-                        icon = Icons.Filled.Bathtub,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SpecBox(
-                        title = "المواقف",
-                        value = "${property.parkingSpaces}",
-                        icon = Icons.Filled.DirectionsCar,
-                        modifier = Modifier.weight(1f)
-                    )
+                // Adaptive Spec Boxes based on Property Type
+                when (property.type) {
+                    "أرض" -> {
+                        val pricePerMeter = if (property.area > 0) property.price / property.area else 0
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            SpecBox(
+                                title = "مساحة الأرض",
+                                value = "${property.area} م²",
+                                icon = Icons.Filled.SquareFoot,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "سعر المتر التقديري",
+                                value = if (pricePerMeter > 0) "$pricePerMeter ر.س" else "حسب السوم",
+                                icon = Icons.Filled.Landscape,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "نوع الاستخدام",
+                                value = if (property.title.contains("تجاري")) "تجاري" else "سكني",
+                                icon = Icons.Filled.Verified,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                    "عمارة" -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            SpecBox(
+                                title = "مسطح الأرض",
+                                value = "${property.area} م²",
+                                icon = Icons.Filled.SquareFoot,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "عدد الوحدات",
+                                value = "${property.bedrooms} وحدة",
+                                icon = Icons.Filled.Business,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "عائد استثماري",
+                                value = "9.2% سنوياً",
+                                icon = Icons.Filled.TrendingUp,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "مواقف السيارات",
+                                value = "${property.parkingSpaces}",
+                                icon = Icons.Filled.DirectionsCar,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                    "مكتب" -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            SpecBox(
+                                title = "المساحة المكتبية",
+                                value = "${property.area} م²",
+                                icon = Icons.Filled.SquareFoot,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "المواقف المخصصة",
+                                value = "${property.parkingSpaces}",
+                                icon = Icons.Filled.DirectionsCar,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "دورات المياه",
+                                value = "${property.bathrooms}",
+                                icon = Icons.Filled.Bathtub,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "المصاعد",
+                                value = "متوفرة",
+                                icon = Icons.Filled.Elevator,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                    "شاليه" -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            SpecBox(
+                                title = "المساحة الكلية",
+                                value = "${property.area} م²",
+                                icon = Icons.Filled.SquareFoot,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "الغرف والمجالس",
+                                value = "${property.bedrooms}",
+                                icon = Icons.Filled.Bed,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "دورات المياه",
+                                value = "${property.bathrooms}",
+                                icon = Icons.Filled.Bathtub,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "المسبح",
+                                value = "مسبح خاص",
+                                icon = Icons.Filled.Pool,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                    else -> {
+                        // فيلا، شقة، تاون هاوس، بنتهاوس
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            SpecBox(
+                                title = "المساحة",
+                                value = "${property.area} م²",
+                                icon = Icons.Filled.SquareFoot,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "غرف النوم",
+                                value = "${property.bedrooms}",
+                                icon = Icons.Filled.Bed,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "دورات المياه",
+                                value = "${property.bathrooms}",
+                                icon = Icons.Filled.Bathtub,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SpecBox(
+                                title = "المواقف",
+                                value = "${property.parkingSpaces}",
+                                icon = Icons.Filled.DirectionsCar,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -353,7 +555,7 @@ fun PropertyDetailSheet(
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -479,7 +681,7 @@ fun PropertyDetailSheet(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Agent Card
+                // Publisher / Agent / Owner Card
                 Surface(
                     shape = RoundedCornerShape(18.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant,
@@ -570,10 +772,10 @@ fun PropertyDetailSheet(
                                     .weight(1f)
                                     .height(48.dp)
                                     .testTag("whatsapp_agent_button"),
-                                border = BorderStroke(1.dp, AccentTagGreen),
+                                border = BorderStroke(1.dp, TagGreen),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text("مراسلة واتساب", fontWeight = FontWeight.Bold, color = AccentTagGreen)
+                                Text("مراسلة واتساب", fontWeight = FontWeight.Bold, color = TagGreen)
                             }
                         }
                     }
@@ -611,7 +813,7 @@ fun SpecBox(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = value,
-                fontSize = 13.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )

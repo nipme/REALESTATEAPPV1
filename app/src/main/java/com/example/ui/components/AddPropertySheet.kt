@@ -52,39 +52,47 @@ fun AddPropertySheet(
 
     var title by remember { mutableStateOf("") }
     var priceStr by remember { mutableStateOf("") }
-    var selectedType by remember { mutableStateOf("شقة") }
+    var selectedType by remember { mutableStateOf("فيلا") }
     var selectedPurpose by remember { mutableStateOf("للبيع") }
+    var selectedPublisherRole by remember { mutableStateOf("owner") } // owner, broker, agency
     var selectedCity by remember { mutableStateOf("الرياض") }
     var neighborhood by remember { mutableStateOf("") }
     var areaStr by remember { mutableStateOf("") }
-    var bedroomsStr by remember { mutableStateOf("3") }
-    var bathroomsStr by remember { mutableStateOf("2") }
+    var bedroomsStr by remember { mutableStateOf("4") }
+    var bathroomsStr by remember { mutableStateOf("4") }
+    var typeDetails by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-
-    val types = listOf("فيلا", "شقة", "بنتهاوس", "تاون هاوس")
-    val purposes = listOf("للبيع", "للإيجار")
-    val cities = listOf("الرياض", "جدة", "الخبر", "الدمام", "مكة المكرمة")
-
+    var publisherName by remember { mutableStateOf("صاحب العقار") }
+    var phone by remember { mutableStateOf("+966501234567") }
     var showError by remember { mutableStateOf(false) }
+
+    val propertyTypes = listOf("فيلا", "شقة", "أرض", "عمارة", "مكتب", "شاليه")
+    val purposeList = listOf("للبيع", "للإيجار")
+    val cities = listOf("الرياض", "جدة", "الخبر", "الدمام", "مكة المكرمة", "المدينة المنورة")
+    val publisherRoles = listOf(
+        Triple("owner", "صاحب العقار", "من المالك مباشرة"),
+        Triple("broker", "وسيط عقاري", "وسيط معتمد فال"),
+        Triple("agency", "مكتب عقارات", "مكتب عقاري معتمد")
+    )
 
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = MaterialTheme.colorScheme.primary,
-        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
         focusedLabelColor = MaterialTheme.colorScheme.primary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
         cursorColor = MaterialTheme.colorScheme.primary
     )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        dragHandle = null,
         containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier.testTag("add_property_sheet")
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             // Header
@@ -108,10 +116,7 @@ fun AddPropertySheet(
                     )
                 }
 
-                IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.testTag("close_add_property_button")
-                ) {
+                IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = "إلغاء",
@@ -122,138 +127,123 @@ fun AddPropertySheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Purpose Selection (للبيع / للإيجار)
+            // 1. صفة المعلن (صاحب العقار، وسيط، مكتب)
             Text(
-                "الغرض من الإعلان",
+                text = "صفة ناشر الإعلان (المستخدم):",
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(6.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                purposes.forEach { purpose ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                publisherRoles.forEach { (roleKey, roleLabel, _) ->
                     FilterChip(
-                        selected = selectedPurpose == purpose,
-                        onClick = { selectedPurpose = purpose },
-                        label = { Text(purpose, fontWeight = FontWeight.SemiBold) },
+                        selected = selectedPublisherRole == roleKey,
+                        onClick = {
+                            selectedPublisherRole = roleKey
+                            publisherName = if (roleKey == "owner") "المالك مباشرة" else if (roleKey == "broker") "وسيط فال معتمد" else "مكتب عقارات مرخص"
+                        },
+                        label = { Text(roleLabel, fontSize = 12.sp, fontWeight = FontWeight.Bold) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            labelColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        modifier = Modifier.testTag("purpose_chip_$purpose")
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Type Selection
+            // 2. نوع العقار
             Text(
-                "نوع العقار",
+                text = "نوع العقار:",
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                types.forEach { type ->
-                    FilterChip(
-                        selected = selectedType == type,
-                        onClick = { selectedType = type },
-                        label = { Text(type) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primary,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            labelColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        modifier = Modifier.testTag("type_chip_$type")
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // Title Field
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("عنوان الإعلان (مثال: فيلا فاخرة بحي الملقا)") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("property_title_input"),
-                shape = RoundedCornerShape(12.dp),
-                colors = textFieldColors
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Price Field
-            OutlinedTextField(
-                value = priceStr,
-                onValueChange = { priceStr = it },
-                label = { Text("السعر الإجمالي (ر.س)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("property_price_input"),
-                shape = RoundedCornerShape(12.dp),
-                colors = textFieldColors
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // City Selection
-            Text(
-                "المدينة",
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(6.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                cities.take(4).forEach { city ->
+                propertyTypes.forEach { type ->
                     FilterChip(
-                        selected = selectedCity == city,
-                        onClick = { selectedCity = city },
-                        label = { Text(city, fontSize = 12.sp) },
+                        selected = selectedType == type,
+                        onClick = { selectedType = type },
+                        label = { Text(type, fontSize = 11.sp, fontWeight = FontWeight.Medium) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            labelColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        modifier = Modifier.testTag("city_chip_$city")
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // Neighborhood
+            // 3. الغرض من العقار (بيع / إيجار)
+            Text(
+                text = "الغرض:",
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                purposeList.forEach { purpose ->
+                    FilterChip(
+                        selected = selectedPurpose == purpose,
+                        onClick = { selectedPurpose = purpose },
+                        label = { Text(purpose, fontWeight = FontWeight.SemiBold) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Title Input
             OutlinedTextField(
-                value = neighborhood,
-                onValueChange = { neighborhood = it },
-                label = { Text("اسم الحي (مثال: حي الياسمين)") },
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("عنوان الإعلان (مثال: فيلا مودرن للبيع)") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .testTag("property_neighborhood_input"),
+                    .testTag("property_title_input"),
                 shape = RoundedCornerShape(12.dp),
+                singleLine = true,
                 colors = textFieldColors
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Specifications: Area, Bedrooms, Bathrooms
+            // Price & Area Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                OutlinedTextField(
+                    value = priceStr,
+                    onValueChange = { priceStr = it },
+                    label = { Text("السعر (ر.س)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("property_price_input"),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = textFieldColors
+                )
+
                 OutlinedTextField(
                     value = areaStr,
                     onValueChange = { areaStr = it },
@@ -263,47 +253,137 @@ fun AddPropertySheet(
                         .weight(1f)
                         .testTag("property_area_input"),
                     shape = RoundedCornerShape(12.dp),
-                    colors = textFieldColors
-                )
-
-                OutlinedTextField(
-                    value = bedroomsStr,
-                    onValueChange = { bedroomsStr = it },
-                    label = { Text("الغرف") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier
-                        .weight(1f)
-                        .testTag("property_bedrooms_input"),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = textFieldColors
-                )
-
-                OutlinedTextField(
-                    value = bathroomsStr,
-                    onValueChange = { bathroomsStr = it },
-                    label = { Text("الحمامات") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier
-                        .weight(1f)
-                        .testTag("property_bathrooms_input"),
-                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
                     colors = textFieldColors
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // City & Neighborhood Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedTextField(
+                    value = selectedCity,
+                    onValueChange = { selectedCity = it },
+                    label = { Text("المدينة") },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = textFieldColors
+                )
+
+                OutlinedTextField(
+                    value = neighborhood,
+                    onValueChange = { neighborhood = it },
+                    label = { Text("الحي") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("property_neighborhood_input"),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = textFieldColors
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Conditional inputs based on property type
+            if (selectedType != "أرض") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    OutlinedTextField(
+                        value = bedroomsStr,
+                        onValueChange = { bedroomsStr = it },
+                        label = { Text(if (selectedType == "عمارة") "الوحدات" else "الغرف") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                        colors = textFieldColors
+                    )
+
+                    OutlinedTextField(
+                        value = bathroomsStr,
+                        onValueChange = { bathroomsStr = it },
+                        label = { Text("دورات المياه") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                        colors = textFieldColors
+                    )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
+            // Type-specific details (عرض الشارع، الواجهة، العائد)
+            OutlinedTextField(
+                value = typeDetails,
+                onValueChange = { typeDetails = it },
+                label = {
+                    Text(
+                        when (selectedType) {
+                            "أرض" -> "تفاصيل الأرض (عرض الشارع، الواجهة، طبيعة الأرض)"
+                            "عمارة" -> "تفاصيل العمارة (العائد المتوقع، عدد المعارض)"
+                            "مكتب" -> "تفاصيل المكتب (الدور، التكييف، عدد المواقف)"
+                            "شاليه" -> "تفاصيل الشاليه (المسبح، المسطح الأخضر)"
+                            else -> "تفاصيل إضافية (الدور، الإطلالة، المسبح، الخ)"
+                        }
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                colors = textFieldColors
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Publisher Name & Phone
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedTextField(
+                    value = publisherName,
+                    onValueChange = { publisherName = it },
+                    label = { Text("اسم المعلن") },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = textFieldColors
+                )
+
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = { Text("رقم الجوال") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = textFieldColors
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Description
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("وصف العقار والمميزات الإضافية") },
+                label = { Text("وصف العقار ومميزاته") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
+                    .height(95.dp)
                     .testTag("property_desc_input"),
                 shape = RoundedCornerShape(12.dp),
-                maxLines = 4,
+                maxLines = 3,
                 colors = textFieldColors
             )
 
@@ -324,8 +404,8 @@ fun AddPropertySheet(
                 onClick = {
                     val price = priceStr.toLongOrNull()
                     val area = areaStr.toIntOrNull() ?: 200
-                    val beds = bedroomsStr.toIntOrNull() ?: 3
-                    val baths = bathroomsStr.toIntOrNull() ?: 2
+                    val beds = bedroomsStr.toIntOrNull() ?: 0
+                    val baths = bathroomsStr.toIntOrNull() ?: 0
 
                     if (title.isBlank() || price == null || neighborhood.isBlank()) {
                         showError = true
@@ -337,9 +417,21 @@ fun AddPropertySheet(
                         }
                         val currency = if (selectedPurpose == "للإيجار") "ر.س/سنوي" else "ر.س"
 
+                        val badgeText = when (selectedPublisherRole) {
+                            "owner" -> "من المالك مباشرة"
+                            "agency" -> "مكتب عقاري معتمد"
+                            else -> "وسيط معتمد فال"
+                        }
+
+                        val licenseText = when (selectedPublisherRole) {
+                            "owner" -> "إعلان موثق من المالك مباشرة"
+                            "agency" -> "سجل تجاري وترخيص منشأة معتمد"
+                            else -> "وسيط مرخص برخصة فال العقارية"
+                        }
+
                         val newProperty = PropertyEntity(
                             title = title,
-                            description = if (description.isNotBlank()) description else "عقار استثنائي في موقع مميز يتوفر على كافة الخدمات الأساسية والمرافق الحيوية.",
+                            description = if (description.isNotBlank()) description else "عقار مميز بموقع استراتيجي متكامل الخدمات والمرافق.",
                             price = price,
                             currency = currency,
                             type = selectedType,
@@ -351,10 +443,13 @@ fun AddPropertySheet(
                             bathrooms = baths,
                             imageResName = imageChosen,
                             isFavorite = false,
-                            agentName = "المالك مباشرة",
-                            agentPhone = "+966500000000",
-                            agentLicense = "إعلان مباشر موثق",
-                            amenities = "موقف خاص,تكييف,مدخل خاص"
+                            agentName = publisherName,
+                            agentPhone = phone,
+                            agentLicense = licenseText,
+                            amenities = "موقف خاص,تكييف,مدخل خاص",
+                            publisherType = selectedPublisherRole,
+                            publisherBadge = badgeText,
+                            typeSpecificDetails = typeDetails
                         )
                         onSaveProperty(newProperty)
                     }

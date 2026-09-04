@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -38,7 +39,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -48,19 +48,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.components.AddPropertySheet
 import com.example.ui.components.FilterSheet
 import com.example.ui.components.PropertyDetailSheet
+import com.example.ui.components.SettingsSheet
 import com.example.ui.screens.CalculatorScreen
 import com.example.ui.screens.FavoritesScreen
 import com.example.ui.screens.HomeScreen
-import com.example.ui.theme.DeepViolet
-import com.example.ui.theme.ElegantDarkNav
-import com.example.ui.theme.ElegantDarkPrimary
-import com.example.ui.theme.ElegantDarkSurfaceVariant
-import com.example.ui.theme.ElegantDarkTextSecondary
 import com.example.ui.theme.FavoriteRed
-import com.example.ui.theme.GoldAccent
 import com.example.ui.theme.MyApplicationTheme
-import com.example.ui.theme.Navy900
-import com.example.ui.theme.Slate600
 import com.example.ui.viewmodel.RealEstateViewModel
 import kotlinx.coroutines.launch
 
@@ -72,7 +65,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MyApplicationTheme {
+            val isDarkTheme by viewModel.isDarkTheme.collectAsStateWithLifecycle()
+            MyApplicationTheme(darkTheme = isDarkTheme) {
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                     RealEstateApp(viewModel = viewModel)
                 }
@@ -88,10 +82,14 @@ fun RealEstateApp(viewModel: RealEstateViewModel) {
     val filter by viewModel.filter.collectAsStateWithLifecycle()
     val selectedProperty by viewModel.selectedProperty.collectAsStateWithLifecycle()
     val mortgageState by viewModel.mortgageState.collectAsStateWithLifecycle()
+    val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
+    val isDarkTheme by viewModel.isDarkTheme.collectAsStateWithLifecycle()
+    val activeRole by viewModel.activeUserRole.collectAsStateWithLifecycle()
 
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var isFilterSheetOpen by remember { mutableStateOf(false) }
     var isAddPropertyOpen by remember { mutableStateOf(false) }
+    var isSettingsSheetOpen by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -101,7 +99,7 @@ fun RealEstateApp(viewModel: RealEstateViewModel) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             NavigationBar(
-                containerColor = ElegantDarkNav,
+                containerColor = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.testTag("bottom_nav_bar")
             ) {
                 NavigationBarItem(
@@ -121,11 +119,11 @@ fun RealEstateApp(viewModel: RealEstateViewModel) {
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ElegantDarkPrimary,
-                        selectedTextColor = ElegantDarkPrimary,
-                        indicatorColor = ElegantDarkSurfaceVariant,
-                        unselectedIconColor = ElegantDarkTextSecondary,
-                        unselectedTextColor = ElegantDarkTextSecondary
+                        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     modifier = Modifier.testTag("nav_explore")
                 )
@@ -139,7 +137,7 @@ fun RealEstateApp(viewModel: RealEstateViewModel) {
                                 if (favoriteProperties.isNotEmpty()) {
                                     Badge(
                                         containerColor = FavoriteRed,
-                                        contentColor = DeepViolet
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
                                     ) {
                                         Text("${favoriteProperties.size}")
                                     }
@@ -160,11 +158,11 @@ fun RealEstateApp(viewModel: RealEstateViewModel) {
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ElegantDarkPrimary,
-                        selectedTextColor = ElegantDarkPrimary,
-                        indicatorColor = ElegantDarkSurfaceVariant,
-                        unselectedIconColor = ElegantDarkTextSecondary,
-                        unselectedTextColor = ElegantDarkTextSecondary
+                        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     modifier = Modifier.testTag("nav_favorites")
                 )
@@ -186,11 +184,11 @@ fun RealEstateApp(viewModel: RealEstateViewModel) {
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ElegantDarkPrimary,
-                        selectedTextColor = ElegantDarkPrimary,
-                        indicatorColor = ElegantDarkSurfaceVariant,
-                        unselectedIconColor = ElegantDarkTextSecondary,
-                        unselectedTextColor = ElegantDarkTextSecondary
+                        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     modifier = Modifier.testTag("nav_calculator")
                 )
@@ -210,10 +208,13 @@ fun RealEstateApp(viewModel: RealEstateViewModel) {
                     0 -> HomeScreen(
                         properties = filteredProperties,
                         filter = filter,
+                        activeUserRole = activeRole,
                         onSearchChange = { viewModel.updateSearchQuery(it) },
                         onSelectType = { viewModel.setFilterType(it) },
                         onSelectPurpose = { viewModel.setFilterPurpose(it) },
+                        onSelectPublisher = { viewModel.setFilterPublisher(it) },
                         onOpenFilter = { isFilterSheetOpen = true },
+                        onOpenSettings = { isSettingsSheetOpen = true },
                         onOpenAddProperty = { isAddPropertyOpen = true },
                         onPropertyClick = { viewModel.selectProperty(it) },
                         onToggleFavorite = { property ->
@@ -223,7 +224,14 @@ fun RealEstateApp(viewModel: RealEstateViewModel) {
                                 snackbarHostState.showSnackbar(msg)
                             }
                         },
-                        onResetFilters = { viewModel.resetFilters() }
+                        onResetFilters = { viewModel.resetFilters() },
+                        isSyncing = isSyncing,
+                        onSyncCloud = {
+                            viewModel.syncWithCloud()
+                            scope.launch {
+                                snackbarHostState.showSnackbar("جاري مزامنة العقارات مع Cloud Firestore...")
+                            }
+                        }
                     )
 
                     1 -> FavoritesScreen(
@@ -275,10 +283,35 @@ fun RealEstateApp(viewModel: RealEstateViewModel) {
                     onApplyType = { viewModel.setFilterType(it) },
                     onApplyPurpose = { viewModel.setFilterPurpose(it) },
                     onApplyCity = { viewModel.setFilterCity(it) },
+                    onApplyPublisher = { viewModel.setFilterPublisher(it) },
                     onReset = {
                         viewModel.resetFilters()
                         isFilterSheetOpen = false
                     }
+                )
+            }
+
+            // Settings Sheet (الوضع الداكن/العادي، فئات المستخدمين، معلومات Firestore)
+            if (isSettingsSheetOpen) {
+                SettingsSheet(
+                    isDarkTheme = isDarkTheme,
+                    onToggleDarkTheme = { viewModel.setDarkTheme(it) },
+                    activeUserRole = activeRole,
+                    onSelectRole = { viewModel.setActiveUserRole(it) },
+                    isSyncing = isSyncing,
+                    onSyncCloud = {
+                        viewModel.syncWithCloud()
+                        scope.launch {
+                            snackbarHostState.showSnackbar("جاري مزامنة العقارات مع Cloud Firestore...")
+                        }
+                    },
+                    onResetData = {
+                        viewModel.resetToDefaultProperties()
+                        scope.launch {
+                            snackbarHostState.showSnackbar("تم استعادة قاعدة البيانات الافتراضية")
+                        }
+                    },
+                    onDismiss = { isSettingsSheetOpen = false }
                 )
             }
 
@@ -290,7 +323,7 @@ fun RealEstateApp(viewModel: RealEstateViewModel) {
                         viewModel.addProperty(newProperty)
                         isAddPropertyOpen = false
                         scope.launch {
-                            snackbarHostState.showSnackbar("تم نشر إعلانك العقاري بنجاح!")
+                            snackbarHostState.showSnackbar("تم نشر إعلانك العقاري بنجاح ومزامنته سحابياً!")
                         }
                     }
                 )

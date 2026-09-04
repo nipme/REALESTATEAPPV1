@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.AppDatabase
 import com.example.data.local.PropertyEntity
+import com.example.data.remote.FirestoreService
 import com.example.data.repository.PropertyRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,6 +21,7 @@ data class PropertyFilter(
     val type: String = "الكل",
     val purpose: String = "الكل",
     val city: String = "الكل",
+    val publisher: String = "الكل", // الكل, من المالك مباشرة, مكاتب عقارية, وسطاء معتمدون
     val maxPrice: Long = Long.MAX_VALUE,
     val minBedrooms: Int = 0
 )
@@ -57,11 +59,28 @@ class RealEstateViewModel(application: Application) : AndroidViewModel(applicati
 
     private val repository: PropertyRepository
 
+    // App Theme State: Dark Mode vs Light (Normal) Mode
+    private val _isDarkTheme = MutableStateFlow(true)
+    val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
+
+    // Active User Role State
+    // "client" (عميل/مشتري), "broker" (وسيط عقاري فال), "agency" (مكتب عقارات مرخص), "owner" (صاحب العقار)
+    private val _activeUserRole = MutableStateFlow("client")
+    val activeUserRole: StateFlow<String> = _activeUserRole.asStateFlow()
+
+    private val _isSyncing = MutableStateFlow(false)
+    val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
+
+    val isCloudConfigured: Boolean
+        get() = repository.firestoreService?.isConfigured == true
+
     init {
         val database = AppDatabase.getDatabase(application, viewModelScope)
-        repository = PropertyRepository(database.propertyDao())
+        val firestoreService = FirestoreService(application)
+        repository = PropertyRepository(database.propertyDao(), firestoreService)
         viewModelScope.launch {
             repository.checkAndSeedIfEmpty()
+            syncWithCloud()
         }
     }
 
@@ -81,7 +100,9 @@ class RealEstateViewModel(application: Application) : AndroidViewModel(applicati
                         property.title.contains(filter.query, ignoreCase = true) ||
                         property.neighborhood.contains(filter.query, ignoreCase = true) ||
                         property.city.contains(filter.query, ignoreCase = true) ||
-                        property.type.contains(filter.query, ignoreCase = true)
+                        property.type.contains(filter.query, ignoreCase = true) ||
+                        property.agentName.contains(filter.query, ignoreCase = true) ||
+                        property.publisherBadge.contains(filter.query, ignoreCase = true)
 
                 val matchesType = filter.type == "الكل" || property.type == filter.type
                 val matchesPurpose = filter.purpose == "الكل" || property.purpose == filter.purpose
@@ -89,7 +110,14 @@ class RealEstateViewModel(application: Application) : AndroidViewModel(applicati
                 val matchesPrice = property.price <= filter.maxPrice
                 val matchesBedrooms = property.bedrooms >= filter.minBedrooms
 
-                matchesQuery && matchesType && matchesPurpose && matchesCity && matchesPrice && matchesBedrooms
+                val matchesPublisher = when (filter.publisher) {
+                    "من المالك مباشرة" -> property.publisherType == "owner"
+                    "مكاتب عقارية" -> property.publisherType == "agency"
+                    "وسطاء معتمدون" -> property.publisherType == "broker"
+                    else -> true
+                }
+
+                matchesQuery && matchesType && matchesPurpose && matchesCity && matchesPrice && matchesBedrooms && matchesPublisher
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -100,6 +128,18 @@ class RealEstateViewModel(application: Application) : AndroidViewModel(applicati
     // Mortgage calculator state
     private val _mortgageState = MutableStateFlow(MortgageCalculation())
     val mortgageState: StateFlow<MortgageCalculation> = _mortgageState.asStateFlow()
+
+    fun setDarkTheme(enabled: Boolean) {
+        _isDarkTheme.value = enabled
+    }
+
+    fun toggleTheme() {
+        _isDarkTheme.value = !_isDarkTheme.value
+    }
+
+    fun setActiveUserRole(role: String) {
+        _activeUserRole.value = role
+    }
 
     fun updateSearchQuery(query: String) {
         _filter.value = _filter.value.copy(query = query)
@@ -115,6 +155,10 @@ class RealEstateViewModel(application: Application) : AndroidViewModel(applicati
 
     fun setFilterCity(city: String) {
         _filter.value = _filter.value.copy(city = city)
+    }
+
+    fun setFilterPublisher(publisher: String) {
+        _filter.value = _filter.value.copy(publisher = publisher)
     }
 
     fun resetFilters() {
@@ -140,10 +184,10 @@ class RealEstateViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun deleteProperty(id: Long) {
+    fun deleteProperty(propertyId: Long) {
         viewModelScope.launch {
-            repository.deleteProperty(id)
-            if (_selectedProperty.value?.id == id) {
+            repository.deleteProperty(propertyId)
+            if (_selectedProperty.value?.id == propertyId) {
                 _selectedProperty.value = null
             }
         }
@@ -167,5 +211,22 @@ class RealEstateViewModel(application: Application) : AndroidViewModel(applicati
 
     fun setMortgageForProperty(property: PropertyEntity) {
         _mortgageState.value = _mortgageState.value.copy(propertyPrice = property.price.toDouble())
+    }
+
+    fun syncWithCloud() {
+        viewModelScope.launch {
+            _isSyncing.value = true
+            try {
+                repository.syncWithCloud()
+            } finally {
+                _isSyncing.value = false
+            }
+        }
+    }
+
+    fun resetToDefaultProperties() {
+        viewModelScope.launch {
+            repository.resetToDefaultSeed()
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,11 +17,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Bathtub
 import androidx.compose.material.icons.filled.Bed
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.Elevator
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Landscape
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Pool
 import androidx.compose.material.icons.filled.SquareFoot
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -32,7 +40,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -44,9 +51,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.PropertyEntity
-import com.example.ui.theme.AccentTagGreen
-import com.example.ui.theme.AccentTagGreenBg
 import com.example.ui.theme.FavoriteRed
+import com.example.ui.theme.TagBrokerBg
+import com.example.ui.theme.TagBrokerCyan
+import com.example.ui.theme.TagGreen
+import com.example.ui.theme.TagGreenBg
+import com.example.ui.theme.TagOfficeBg
+import com.example.ui.theme.TagOfficeIndigo
+import com.example.ui.theme.TagOwnerBg
+import com.example.ui.theme.TagOwnerBlue
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -85,52 +98,86 @@ fun PropertyCard(
                     modifier = Modifier.matchParentSize()
                 )
 
-                // Dark gradient overlay on bottom of image for contrast
+                // Dark gradient overlay for contrast
                 Box(
                     modifier = Modifier
                         .matchParentSize()
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
+                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.75f)),
                                 startY = 80f
                             )
                         )
                 )
 
-                // Top Status Badges (Sale/Rent and Property Type)
+                // Top Status Badges (Sale/Rent, Type, and Publisher Badge)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(14.dp),
+                        .padding(12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        val isRent = property.purpose == "للإيجار"
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (isRent) AccentTagGreenBg else MaterialTheme.colorScheme.primary.copy(alpha = 0.92f)
-                        ) {
-                            Text(
-                                text = property.purpose,
-                                color = if (isRent) AccentTagGreen else MaterialTheme.colorScheme.onPrimary,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                            )
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            val isRent = property.purpose == "للإيجار"
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (isRent) TagGreenBg else MaterialTheme.colorScheme.primary.copy(alpha = 0.92f)
+                            ) {
+                                Text(
+                                    text = property.purpose,
+                                    color = if (isRent) TagGreen else MaterialTheme.colorScheme.onPrimary,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color.Black.copy(alpha = 0.65f)
+                            ) {
+                                Text(
+                                    text = property.type,
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+
+                        // Publisher Badge (صاحب العقار، وسيط، مكتب)
+                        val (badgeBg, badgeColor) = when (property.publisherType) {
+                            "owner" -> Pair(TagOwnerBg, TagOwnerBlue)
+                            "agency" -> Pair(TagOfficeBg, TagOfficeIndigo)
+                            else -> Pair(TagBrokerBg, TagBrokerCyan)
                         }
 
                         Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color.Black.copy(alpha = 0.6f)
+                            shape = RoundedCornerShape(6.dp),
+                            color = badgeBg.copy(alpha = 0.95f),
+                            border = BorderStroke(0.8.dp, badgeColor.copy(alpha = 0.6f))
                         ) {
-                            Text(
-                                text = property.type,
-                                color = Color.White,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Verified,
+                                    contentDescription = null,
+                                    tint = badgeColor,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = property.publisherBadge,
+                                    color = badgeColor,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
 
@@ -157,7 +204,7 @@ fun PropertyCard(
                     }
                 }
 
-                // Price Tag overlay at bottom right
+                // Price Tag overlay at bottom
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
@@ -173,7 +220,7 @@ fun PropertyCard(
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = property.currency,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(bottom = 2.dp)
@@ -197,17 +244,15 @@ fun PropertyCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 // Location Row
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Filled.LocationOn,
                         contentDescription = "الموقع",
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
@@ -217,22 +262,88 @@ fun PropertyCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-                // Specifications Row: Area, Bedrooms, Bathrooms
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SpecItem(
-                        icon = Icons.Filled.SquareFoot,
-                        label = "${property.area} م²"
-                    )
+                // Property-Specific Harmonized Features (ينسجم مع نوع العقار)
+                HarmonizedSpecificationsRow(property = property)
+            }
+        }
+    }
+}
+
+/**
+ * Renders specifications that harmoniously adapt to the property type:
+ * - أرض: المساحة، سعر المتر التقديري، المواصفة/الشارع
+ * - عمارة: المساحة، العائد الاستثماري/الوحدات، المصعد
+ * - شقة: المساحة، غرف النوم، دورات المياه
+ * - فيلا: المساحة، الغرف، المسبح/الحوش
+ * - مكتب: المساحة، المواقف، التكييف/التشطيب
+ * - شاليه: المساحة، المسبح، المسطح الأخضر
+ */
+@Composable
+fun HarmonizedSpecificationsRow(property: PropertyEntity) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Universal: Area
+        SpecItem(
+            icon = Icons.Filled.SquareFoot,
+            label = "${property.area} م²"
+        )
+
+        when (property.type) {
+            "أرض" -> {
+                val pricePerMeter = if (property.area > 0) property.price / property.area else 0
+                SpecItem(
+                    icon = Icons.Filled.Landscape,
+                    label = if (pricePerMeter > 0) "$pricePerMeter م²" else "صك إلكتروني"
+                )
+                SpecItem(
+                    icon = Icons.Filled.Verified,
+                    label = if (property.purpose == "للبيع") "سكني/تجاري" else "موقع مميز"
+                )
+            }
+            "عمارة" -> {
+                SpecItem(
+                    icon = Icons.Filled.TrendingUp,
+                    label = "عائد استثماري"
+                )
+                SpecItem(
+                    icon = Icons.Filled.Business,
+                    label = "${property.bedrooms} وحدة"
+                )
+            }
+            "شاليه" -> {
+                SpecItem(
+                    icon = Icons.Filled.Pool,
+                    label = "مسبح خاص"
+                )
+                SpecItem(
+                    icon = Icons.Filled.Bed,
+                    label = "${property.bedrooms} غرف"
+                )
+            }
+            "مكتب" -> {
+                SpecItem(
+                    icon = Icons.Filled.Elevator,
+                    label = "${property.parkingSpaces} مواقف"
+                )
+                SpecItem(
+                    icon = Icons.Filled.Business,
+                    label = "برج أعمال"
+                )
+            }
+            else -> {
+                // شقة، فيلا، تاون هاوس، بنتهاوس
+                if (property.bedrooms > 0) {
                     SpecItem(
                         icon = Icons.Filled.Bed,
                         label = "${property.bedrooms} غرف"
                     )
+                }
+                if (property.bathrooms > 0) {
                     SpecItem(
                         icon = Icons.Filled.Bathtub,
                         label = "${property.bathrooms} حمامات"
@@ -254,18 +365,18 @@ fun SpecItem(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(15.dp)
             )
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(5.dp))
             Text(
                 text = label,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )

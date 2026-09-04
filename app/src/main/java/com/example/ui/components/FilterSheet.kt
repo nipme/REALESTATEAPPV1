@@ -1,6 +1,7 @@
 package com.example.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -41,13 +43,15 @@ fun FilterSheet(
     onApplyType: (String) -> Unit,
     onApplyPurpose: (String) -> Unit,
     onApplyCity: (String) -> Unit,
+    onApplyPublisher: (String) -> Unit,
     onReset: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val cities = listOf("الكل", "الرياض", "جدة", "الخبر", "الدمام")
-    val types = listOf("الكل", "فيلا", "شقة", "بنتهاوس", "تاون هاوس")
+    val cities = listOf("الكل", "الرياض", "جدة", "الخبر", "الدمام", "مكة المكرمة")
+    val types = listOf("الكل", "فيلا", "شقة", "أرض", "عمارة", "مكتب", "شاليه")
     val purposes = listOf("الكل", "للبيع", "للإيجار")
+    val publishers = listOf("الكل", "من المالك مباشرة", "مكاتب عقارية", "وسطاء معتمدون")
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -74,7 +78,7 @@ fun FilterSheet(
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = " تصفية العقارات",
+                        text = " تصفية العقارات المتقدمة",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -95,12 +99,43 @@ fun FilterSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Purpose
+            // 1. المعلن (المستخدمين)
+            Text(
+                "جهة الإعلان (المستخدمين)",
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                publishers.forEach { pub ->
+                    FilterChip(
+                        selected = currentFilter.publisher == pub,
+                        onClick = { onApplyPublisher(pub) },
+                        label = { Text(pub, fontSize = 12.sp) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            labelColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // 2. نوع العرض (بيع / إيجار)
             Text(
                 "نوع العرض",
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -121,16 +156,18 @@ fun FilterSheet(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // City
+            // 3. المدينة
             Text(
                 "المدينة",
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(6.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 cities.forEach { city ->
@@ -150,19 +187,21 @@ fun FilterSheet(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Type
+            // 4. نوع العقار (ينسجم مع نوع العقار)
             Text(
                 "نوع العقار",
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(6.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                types.take(4).forEach { type ->
+                types.forEach { type ->
                     FilterChip(
                         selected = currentFilter.type == type,
                         onClick = { onApplyType(type) },

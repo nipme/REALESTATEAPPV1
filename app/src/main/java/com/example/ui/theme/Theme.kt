@@ -1,7 +1,6 @@
 package com.example.ui.theme
 
 import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -11,22 +10,40 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val ElegantDarkColorScheme = darkColorScheme(
-    primary = ElegantDarkPrimary,
-    onPrimary = ElegantDarkOnPrimary,
-    primaryContainer = ElegantDarkPrimaryContainer,
-    onPrimaryContainer = ElegantDarkOnPrimaryContainer,
-    secondary = ElegantDarkSecondary,
-    onSecondary = ElegantDarkOnSecondary,
-    background = ElegantDarkBg,
-    onBackground = ElegantDarkText,
-    surface = ElegantDarkSurface,
-    onSurface = ElegantDarkText,
-    surfaceVariant = ElegantDarkSurfaceVariant,
-    onSurfaceVariant = ElegantDarkTextSecondary,
-    outline = ElegantDarkOutline,
+private val DeepNavyDarkColorScheme = darkColorScheme(
+    primary = RoyalBlueLight,
+    onPrimary = DeepNavyBg,
+    primaryContainer = RoyalBlueContainerDark,
+    onPrimaryContainer = RoyalBlueOnContainerDark,
+    secondary = Color(0xFF93C5FD),
+    onSecondary = DeepNavyBg,
+    background = DeepNavyBg,
+    onBackground = DeepNavyText,
+    surface = DeepNavySurface,
+    onSurface = DeepNavyText,
+    surfaceVariant = DeepNavySurfaceVariant,
+    onSurfaceVariant = DeepNavyTextSecondary,
+    outline = DeepNavyOutline,
     error = FavoriteRed,
-    onError = DeepViolet
+    onError = Color.White
+)
+
+private val DeepNavyLightColorScheme = lightColorScheme(
+    primary = LightPrimary,
+    onPrimary = LightOnPrimary,
+    primaryContainer = LightPrimaryContainer,
+    onPrimaryContainer = LightOnPrimaryContainer,
+    secondary = Color(0xFF0284C7),
+    onSecondary = Color.White,
+    background = LightBg,
+    onBackground = LightText,
+    surface = LightSurface,
+    onSurface = LightText,
+    surfaceVariant = LightSurfaceVariant,
+    onSurfaceVariant = LightTextSecondary,
+    outline = LightOutline,
+    error = FavoriteRed,
+    onError = Color.White
 )
 
 @Composable
@@ -40,7 +57,8 @@ fun MyApplicationTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        else -> ElegantDarkColorScheme
+        darkTheme -> DeepNavyDarkColorScheme
+        else -> DeepNavyLightColorScheme
     }
 
     MaterialTheme(
@@ -49,4 +67,3 @@ fun MyApplicationTheme(
         content = content
     )
 }
-

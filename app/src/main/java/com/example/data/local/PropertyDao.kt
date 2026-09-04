@@ -12,6 +12,9 @@ interface PropertyDao {
     @Query("SELECT * FROM properties ORDER BY id DESC")
     fun getAllProperties(): Flow<List<PropertyEntity>>
 
+    @Query("SELECT * FROM properties ORDER BY id DESC")
+    suspend fun getAllPropertiesList(): List<PropertyEntity>
+
     @Query("SELECT * FROM properties WHERE isFavorite = 1 ORDER BY id DESC")
     fun getFavoriteProperties(): Flow<List<PropertyEntity>>
 
